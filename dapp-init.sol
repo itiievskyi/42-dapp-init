@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.20;
 
 contract Passport {
 
@@ -16,7 +16,7 @@ contract Passport {
 	uint size;
 	uint a;
 
-	constructor() public {
+	function() public {
 		owner = msg.sender;
 	}
 
@@ -27,8 +27,8 @@ contract Passport {
 
 	function addUsr(uint _id, address _addr, uint _age, string _name,
 		string _alias, string _surname) public {
-		require(msg.sender == owner, "You are not authorized!");
-		require(isUnique(_addr, _id) == 1, "This user is already registered");
+		require(msg.sender == owner);
+		require(isUnique(_addr, _id) == 1);
 		size++;
 		authorizedUsers.push(User(_id, _addr, _age, _name, _alias, _surname));
 	}
@@ -69,16 +69,15 @@ contract Election {
 	bool error;
 	uint i;
 
-	constructor() public {
+	function() public {
 		owner = msg.sender;
 		error = true;
 	}
 
 	function vote (address _vote) public {
-		require(msg.sender != _vote, "You cannot vote for yourself");
-		require(voters[msg.sender]._voted == false, "You voted earlier!");
-		require(votes[_vote]._active == true,
-			"This address does not belong to any active candidate");
+		require(msg.sender != _vote);
+		require(voters[msg.sender]._voted == false);
+		require(votes[_vote]._active == true);
 		voters[msg.sender]._voted = true;
 		voters[msg.sender]._cand = _vote;
 		votes[_vote]._votes += 1;
@@ -92,16 +91,14 @@ contract Election {
 	}
 
 	function addCandidate(address _addr) public {
-		require(msg.sender == owner, "You are not authorized!");
-		require(isActiveCand(_addr) == false,
-			"The candidate is already in the list");
+		require(msg.sender == owner);
+		require(isActiveCand(_addr) == false);
 		votes[_addr]._active = true;
 	}
 
 	function removeCandidate(address _addr) public {
-		require(msg.sender == owner, "You are not authorized!");
-		require(isActiveCand(_addr) == true,
-			"The candidate is already removed");
+		require(msg.sender == owner);
+		require(isActiveCand(_addr) == true);
 		votes[_addr]._active = false;
 	}
 
@@ -112,8 +109,8 @@ contract Election {
 	}
 
 	function stopVoting() public {
-		require(msg.sender == owner, "You are not authorized!");
-		require(end == false, "The voting is already stopped");
+		require(msg.sender == owner);
+		require(end == false);
 		end = true;
 		while (i < totalvotes) {
 			if (votes[validVotes[i]]._votes > maxvotes)
@@ -132,10 +129,8 @@ contract Election {
 
 	function checkWinner() view public returns (address) {
 //		require(isUnique(msg.sender, 0) == 1, "You are not authorized!");
-		require(end == true,
-			"The election is still active, please try again later");
-		require(error == false,
-			"The election is over but there is no winner :(");
+		require(end == true);
+		require(error == false);
 		return (winner);
 	}
 /*
