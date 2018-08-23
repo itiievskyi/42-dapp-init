@@ -12,15 +12,21 @@ contract Passport {
 	}
 
 	User[] public authorizedUsers;
-	address owner;
+	address owner = msg.sender;
 	uint size;
 	uint a;
 
-	function() public {
-		owner = msg.sender;
+	function getAuth(address addr) public returns (bool) {
+		a = 0;
+		while (a < size) {
+			if (authorizedUsers[a]._addr == addr)
+				return (true);
+			a++;
+		}
+		return (false);
 	}
 
-	function kill() public {
+	function killContract() public {
 		if (msg.sender == owner)
 			selfdestruct(owner);
 	}
@@ -58,7 +64,8 @@ contract Election {
 		bool	_voted;
 	}
 
-	address owner;
+	address owner = msg.sender;
+	address passAddr;
 	mapping (address => Cand) votes;
 	mapping (address => Vote) voters;
 	address[] validVotes;
@@ -68,14 +75,21 @@ contract Election {
 	bool end;
 	bool error;
 	uint i;
+	string public rools = "1. You can vote only once. 2. Before voting, it is recommended to check whether your candidate is active. \n3. You can vote for yourself. \n 4. You can check the winner when the voting is over.";
+	string public whoIsTheWinner = "Voting is still active. To check the winner, please wait until voting is over.";
 
-	function() public {
-		owner = msg.sender;
+	function Election(address _passAddr) public {
+		passAddr = _passAddr;
 		error = true;
 	}
 
+	function check(address userAddr) public returns (bool) {
+		Passport x = Passport (passAddr);
+		return x.getAuth(userAddr);
+	}
+
 	function vote (address _vote) public {
-		require(msg.sender != _vote);
+		require(check(msg.sender) == true);
 		require(voters[msg.sender]._voted == false);
 		require(votes[_vote]._active == true);
 		voters[msg.sender]._voted = true;
@@ -85,7 +99,7 @@ contract Election {
 		totalvotes += 1;
 	}
 
-	function kill() public {
+	function killContract() public {
 		if (msg.sender == owner)
 			selfdestruct(owner);
 	}
@@ -125,18 +139,15 @@ contract Election {
 			}
 			i++;
 		}
+		if (error == true)
+			whoIsTheWinner = "The voting is over but there is no winner :(";
+		else
+			whoIsTheWinner = "The voting is over. Check the winner by calling the respective function";
 	}
 
 	function checkWinner() view public returns (address) {
-//		require(isUnique(msg.sender, 0) == 1, "You are not authorized!");
 		require(end == true);
 		require(error == false);
 		return (winner);
 	}
-/*
-	function isUnique(address addr, uint id) public returns (int ret) {
-		Passport passport = Passport(owner);
-		return(passport.isUnique(addr, id));
-	}
-*/
 }
