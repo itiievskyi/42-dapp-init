@@ -1,3 +1,15 @@
+/* *************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    dapp-init.sol                                      :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: itiievsk <marvin@42.fr>                    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2018/08/23 14:17:43 by itiievsk          #+#    #+#              #
+#    Updated: 2018/08/23 14:17:55 by itiievsk         ###   ########.fr        #
+#                                                                              #
+# *****************************************************************************/
+
 pragma solidity ^0.4.20;
 
 contract Passport {
@@ -15,8 +27,8 @@ contract Passport {
 	address owner = msg.sender;
 	uint size;
 	uint a;
-	string public rools = "Only those users who reached 18 years can be authorized * You should be the owner in order to authorize users and kill the contract * You can check the users who was authorized earlier using the public list";
-
+	string public passportRools = "Only those users who reached 18 years can be authorized * You should be the owner in order to authorize users and kill the contract * You can check the users who was authorized earlier using the public list";
+	string public warning = "Do not use the GetAuth function. It is public for non-user usage";
 	function getAuth(address addr) public returns (bool) {
 		a = 0;
 		while (a < size) {
@@ -66,7 +78,7 @@ contract Election {
 	}
 
 	address owner = msg.sender;
-	address passAddr;
+	address public passAddr;
 	mapping (address => Cand) votes;
 	mapping (address => Vote) voters;
 	address[] validVotes;
@@ -76,7 +88,7 @@ contract Election {
 	bool end;
 	bool error;
 	uint i;
-	string public rools = "You should be the owner in order to add and remove candidates, stop voting and kill the contract * You should be registered via Passport in order to vote * You can vote only once * Before voting, it is recommended to check whether your candidate is active * You can vote for yourself * You can check the winner when the voting is over";
+	string public electionRools = "You should be the owner in order to add and remove candidates, stop voting and kill the contract * You should be registered via Passport in order to vote * You can vote only once * Before voting, it is recommended to check whether your candidate is active * You can vote for yourself * You can check the winner when the voting is over";
 	string public whoIsTheWinner = "Voting is still active. To check the winner, please wait until voting is over.";
 
 	function Election(address _passAddr) public {
@@ -94,6 +106,7 @@ contract Election {
 		require(check(msg.sender) == true);
 		require(voters[msg.sender]._voted == false);
 		require(votes[_vote]._active == true);
+		require(end == false);
 		voters[msg.sender]._voted = true;
 		voters[msg.sender]._cand = _vote;
 		votes[_vote]._votes += 1;
@@ -102,18 +115,20 @@ contract Election {
 	}
 
 	function killContract() public {
-		if (msg.sender == owner)
-			selfdestruct(owner);
+		require (msg.sender == owner);
+		selfdestruct(owner);
 	}
 
 	function addCandidate(address _addr) public {
 		require(msg.sender == owner);
+		require(end == false);
 		require(isActiveCand(_addr) == false);
 		votes[_addr]._active = true;
 	}
 
 	function removeCandidate(address _addr) public {
 		require(msg.sender == owner);
+		require(end == false);
 		require(isActiveCand(_addr) == true);
 		votes[_addr]._active = false;
 	}
@@ -144,7 +159,7 @@ contract Election {
 		if (error == true)
 			whoIsTheWinner = "The voting is over but there is no winner :(";
 		else
-			whoIsTheWinner = "The voting is over. Check the winner by calling the respective function";
+			whoIsTheWinner = "The voting is over. Check the winner in the field below";
 	}
 
 	function checkWinner() view public returns (address) {
