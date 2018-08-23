@@ -15,6 +15,7 @@ contract Passport {
 	address owner = msg.sender;
 	uint size;
 	uint a;
+	string public rools = "Only those users who reached 18 years can be authorized * You should be the owner in order to authorize users and kill the contract * You can check the users who was authorized earlier using the public list";
 
 	function getAuth(address addr) public returns (bool) {
 		a = 0;
@@ -31,20 +32,20 @@ contract Passport {
 			selfdestruct(owner);
 	}
 
-	function addUsr(uint _id, address _addr, uint _age, string _name,
+	function addUsr(address _addr, uint _age, string _name,
 		string _alias, string _surname) public {
 		require(msg.sender == owner);
-		require(isUnique(_addr, _id) == 1);
+		require(_age >= 18);
+		require(isUnique(_addr) == 1);
+		authorizedUsers.push(User(size, _addr, _age, _name, _alias, _surname));
 		size++;
-		authorizedUsers.push(User(_id, _addr, _age, _name, _alias, _surname));
 	}
 
-	function isUnique(address addr, uint id) public returns (int ret) {
+	function isUnique(address addr) private returns (int ret) {
 		a = 0;
 
 		while (a < size) {
-			if (authorizedUsers[a]._addr == addr ||
-				authorizedUsers[a]._id == id)
+			if (authorizedUsers[a]._addr == addr)
 				return (-1);
 			a++;
 		}
@@ -75,15 +76,16 @@ contract Election {
 	bool end;
 	bool error;
 	uint i;
-	string public rools = "1. You can vote only once. 2. Before voting, it is recommended to check whether your candidate is active. \n3. You can vote for yourself. \n 4. You can check the winner when the voting is over.";
+	string public rools = "You should be the owner in order to add and remove candidates, stop voting and kill the contract * You should be registered via Passport in order to vote * You can vote only once * Before voting, it is recommended to check whether your candidate is active * You can vote for yourself * You can check the winner when the voting is over";
 	string public whoIsTheWinner = "Voting is still active. To check the winner, please wait until voting is over.";
 
 	function Election(address _passAddr) public {
+		require(_passAddr != 0);
 		passAddr = _passAddr;
 		error = true;
 	}
 
-	function check(address userAddr) public returns (bool) {
+	function check(address userAddr) private returns (bool) {
 		Passport x = Passport (passAddr);
 		return x.getAuth(userAddr);
 	}
